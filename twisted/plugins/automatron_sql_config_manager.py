@@ -12,13 +12,17 @@ class SqlConfigManager(object):
     name = 'sql'
 
     def __init__(self, controller):
-        # Set up the database connection pool
-        db_section = dict(controller.config_file.items('database'))
-        dbapi_name = db_section.pop('dbapi')
-        self.database = adbapi.ConnectionPool(dbapi_name, **db_section)
+        self._db_config = dict(controller.config_file.items('database'))
+        self._db_api_name = self._db_config.pop('dbapi')
+        self.database = None
 
     def prepare(self):
-        pass
+        # Set up the database connection pool
+        self.database = adbapi.ConnectionPool(self._dbapi_name, **self._db_config)
+
+    def shutdown(self):
+        if self.database:
+            print self.database.close()
 
     @defer.inlineCallbacks
     def enumerate_servers(self):
