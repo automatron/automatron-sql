@@ -1,5 +1,6 @@
 from twisted.enterprise import adbapi
 from twisted.internet import defer
+from twisted.python import log
 from zope.interface import implements, classProvides
 from automatron.config import IConfigManager, IAutomatronConfigManagerFactory
 
@@ -235,15 +236,19 @@ class SqlConfigManager(object):
             FROM
                 config
             WHERE
-                section = 'user.hostmask'
+                section = 'user.email'
                 AND (server IS NULL OR server = %s)
-                AND value = %s
+                AND key = %s
             ORDER BY
                 relevance
             LIMIT 1
         """
         result = yield self.database.runQuery(q, (server, username))
-        if result:
-            if result[0][0] == 0:
-                server = None
+        if not result:
+            log.msg('Something went terribly wrong, username %s was not found' % username)
+            return
+
+        if result[0][0] == 0:
+            server = None
         self.update_value('user.pref', server, username, preference, value)
+
