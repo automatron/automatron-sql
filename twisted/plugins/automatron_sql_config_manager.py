@@ -76,6 +76,30 @@ class SqlConfigManager(object):
     def get_plugin_section(self, plugin, server, channel):
         return self.get_section('plugin.%s' % plugin.name, server, channel)
 
+    def delete_section(self, section, server, channel):
+        q = ["""
+            DELETE
+            FROM
+                config
+            WHERE
+                section = %s
+        """]
+        params = [section]
+
+        if server is None:
+            q.append('AND server IS NULL')
+        else:
+            q.append('AND server = %s')
+            params.append(server)
+
+        if channel is None:
+            q.append('AND channel IS NULL')
+        else:
+            q.append('AND channel = %s')
+            params.append(channel)
+
+        return self.database.runOperation(q, params)
+
     @defer.inlineCallbacks
     def get_value(self, section, server, channel, key):
         q = """
@@ -162,10 +186,35 @@ class SqlConfigManager(object):
             """]
             params = [section, server, channel, key, new_value]
 
-        self.database.runOperation(' '.join(q), params)
+        yield self.database.runOperation(' '.join(q), params)
 
     def update_plugin_value(self, plugin, server, channel, key, new_value):
         return self.update_value('plugin.%s' % plugin.name, server, channel, key, new_value)
+
+    def delete_value(self, section, server, channel, key):
+        q = ["""
+            DELETE
+            FROM
+                config
+            WHERE
+                section = %s
+                AND key = %s
+        """]
+        params = [section, key]
+
+        if server is None:
+            q.append('AND server IS NULL')
+        else:
+            q.append('AND server = %s')
+            params.append(server)
+
+        if channel is None:
+            q.append('AND channel IS NULL')
+        else:
+            q.append('AND channel = %s')
+            params.append(channel)
+
+        return self.database.runOperation(q, params)
 
     @defer.inlineCallbacks
     def get_username_by_hostmask(self, server, user):
