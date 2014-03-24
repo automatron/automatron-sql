@@ -2,7 +2,7 @@ from twisted.enterprise import adbapi
 from twisted.internet import defer
 from twisted.python import log
 from zope.interface import implements, classProvides
-from automatron.controller.config import IConfigManager, IAutomatronConfigManagerFactory
+from automatron.core.config import IConfigManager, IAutomatronConfigManagerFactory
 
 
 class SqlConfigManager(object):
